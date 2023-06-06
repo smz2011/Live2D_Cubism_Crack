@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+group 'com.live2d.cubism'
+version '5.0'
+
+repositories {
+    maven { url "https://repo1.maven.org/maven2" }
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.javassist:javassist:3.29.2-GA"
+    implementation 'org.zeroturnaround:zt-zip:1.15'
+}
+
+jar {
+    manifest {
+        attributes 'Can-Redefine-Classes': 'true'
+        attributes 'Can-Retransform-Classes': 'true'
+        attributes 'Premain-Class': 'com.live2d.cubism.CrackCubismEditorAgent'
+    }
+}
+
+shadowJar {
+    relocate 'com.google.common', 'bai.crack'
+    minimize()
+    archiveClassifier.set('')
+}
+
+build.dependsOn(shadowJar)
