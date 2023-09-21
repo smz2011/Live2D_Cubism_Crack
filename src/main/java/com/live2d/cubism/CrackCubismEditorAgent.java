@@ -52,6 +52,27 @@ public class CrackCubismEditorAgent {
         return bytes;
     }
 
+    public static byte[] log_ClassCtConstructor(String className, byte[] bytes) {
+        String className_JS = className.replace("/", ".");
+
+        try {
+
+            ClassPool pool = ClassPool.getDefault();
+            CtClass ctClass = pool.get(className_JS);
+
+            CtConstructor[] constructors = ctClass.getConstructors();
+
+            for (CtConstructor constructor : constructors) {
+                log(constructor.getLongName()+"||"+constructor.getMethodInfo());
+            }
+
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return bytes;
+    }
+
     public static byte[] setClassMethod(String className, Method_Date... date) {
         byte[] bytes = new byte[0];
 
@@ -172,11 +193,25 @@ public class CrackCubismEditorAgent {
             }
             """;
 
+    final static String body_2 = """
+            {
+                for (String str: com.live2d.util.aq.f) {
+                  java.util.logging.Logger logger = java.util.logging.Logger.getLogger(str);
+                  if(logger != null) {
+                    logger.setLevel($1);
+                  }
+                }
+            }
+            """;
+
     final static Field_Date field_1 =
             Field_Date.getField_Date("a",null,Modifier.PRIVATE);
 
     final static Method_Date method_1 =
             Method_Date.getMethod_Date("a","()Lcom/live2d/c/j;",body_1);
+
+    final static Method_Date method_2 =
+            Method_Date.getMethod_Date("a","(Ljava/util/logging/Level;Z)V","{}");
 
 
     public static class CubismEditor_Transformer implements ClassFileTransformer {
@@ -185,7 +220,14 @@ public class CrackCubismEditorAgent {
         public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
             switch (className) {
                 case "com/live2d/c/k":
+                    // log(className);
+                    // log_ClassCtMethods(className,classfileBuffer);
+                    // log_ClassCtConstructor(className,classfileBuffer);
                     return setClassALL(className, new Method_Date[]{method_1}, new Field_Date[]{field_1});
+                case "com/live2d/util/aq":
+                    log(className);
+                    log_ClassCtMethods(className,classfileBuffer);
+                    return setClassMethod(className, method_2);
                 default:
                     // log(className);
             }
